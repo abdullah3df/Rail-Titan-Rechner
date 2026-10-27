@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="de" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promotech Rail Titan - Steuerung & Rechner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        body {
+            background: #0d0f12;
+            color: #e5e7eb;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .machine-chassis {
+            background: linear-gradient(145deg, #2a2d32 0%, #1d1f23 50%, #16181b 100%);
+            border: 4px solid #111315;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 460px;
+            padding: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .pinstripe-frame {
+            border: 2px solid #b84a27;
+            border-radius: 10px;
+            padding: 12px;
+            position: relative;
+            box-shadow: inset 0 0 0 2px #1d1f23, inset 0 0 0 3px #8a351b;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .mount-bolt {
+            width: 34px;
+            height: 34px;
+            background: #141619;
+            border: 2px solid #3a3f47;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+        .mount-bolt::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: radial-gradient(circle, #555 20%, #222 80%);
+            border-radius: 50%;
+        }
+        .title-area {
+            text-align: center;
+            flex: 1;
+        }
+        .tig-label {
+            font-size: 10px;
+            color: #8c939e;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+        .rail-titan-logo {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #d8dee9;
+            text-shadow: 0 2px 3px #000;
+            font-family: Impact, 'Arial Black', sans-serif;
+        }
+        .lang-switch {
+            background: #141619;
+            border: 1px solid #b84a27;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #8c939e;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 6px 8px;
+            cursor: pointer;
+        }
+        .lang-btn.active {
+            background: #b84a27;
+            color: #fff;
+        }
+
+        .lcd-bezel {
+            background: #181a1d;
+            border: 2px solid #8c7853;
+            border-radius: 6px;
+            padding: 6px;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.9);
+        }
+        .lcd-screen {
+            background: linear-gradient(180deg, #005bb5 0%, #00448a 100%);
+            border: 2px solid #aad4ff;
+            border-radius: 3px;
+            padding: 8px;
+            color: #e6f4ff;
+            font-family: 'Courier New', Courier, monospace;
+            position: relative;
+            box-shadow: inset 0 0 18px rgba(0, 20, 50, 0.8), 0 0 10px rgba(0, 110, 255, 0.3);
+            display: grid;
+            grid-template-columns: 1fr 28px;
+        }
+        .lcd-main {
+            padding-right: 6px;
+            min-width: 0;
+        }
+        .lcd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1.5px solid #80bfff;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
+        }
+        .lcd-status {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .lcd-unit {
+            font-size: 20px;
+            font-weight: 900;
+            font-family: Arial, sans-serif;
+        }
+
+        .lcd-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .lcd-item {
+            background: rgba(0, 30, 65, 0.35);
+            border: 1.5px solid transparent;
+            border-radius: 4px;
+            padding: 4px 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.12s;
+        }
+        .lcd-item.selected {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: #ffeb3b;
+            box-shadow: 0 0 6px rgba(255, 235, 59, 0.6);
+        }
+        .lcd-symbol {
+            font-size: 13px;
+            font-weight: bold;
+            color: #b3daff;
+            display: flex;
+            align-items: center;
+            gap: 1px;
+        }
+        .lcd-val {
+            font-size: 19px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+            letter-spacing: -0.5px;
+        }
+        .lcd-row-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding-top: 2px;
+        }
+
+        .lcd-sidebar {
+            border-left: 1.5px solid #80bfff;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-box {
+            flex: 1;
+            border-bottom: 1.5px solid #80bfff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .sidebar-box:last-child {
+            border-bottom: none;
+        }
+
+        .promotech-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+            gap: 8px;
+        }
+        .stripe-lines {
+            flex: 1;
+            height: 6px;
+            border-top: 2px solid #b84a27;
+            border-bottom: 2px solid #2b578a;
+        }
+        .promotech-plate {
+            background: linear-gradient(90deg, #b89b5e, #dfd0a7, #a88a4d);
+            color: #1c1e22;
+            font-weight: 900;
+            font-size: 15px;
+            letter-spacing: 2px;
+            padding: 3px 14px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .meter-dashboard {
+            background: #11161d;
+            border: 1.5px solid #2e4358;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+        .dist-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            background: #1a222d;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #2c3a4b;
+        }
+        .dist-label {
+            font-size: 12px;
+            color: #9cb3c9;
+            font-weight: bold;
+        }
+        .dist-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .dist-val-btn {
+            background: #00448a;
+            border: 1px solid #66b2ff;
+            color: #fff;
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .dist-val-btn.selected {
+            border-color: #ffeb3b;
+            box-shadow: 0 0 6px rgba(255,235,59,0.6);
+        }
+        .mini-step-btn {
+            background: #2b3543;
+            color: #fff;
+            border: 1px solid #455468;
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .mini-step-btn:active {
+            background: #b84a27;
+        }
+        .mode-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .mode-label {
+            grid-column: 1 / -1;
+            font-size: 11px;
+            color: #9cb3c9;
+            font-weight: bold;
+        }
+        .mode-btn {
+            background: #1a222d;
+            border: 1px solid #2c3a4b;
+            color: #cbd5e1;
+            border-radius: 5px;
+            padding: 7px 2px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .mode-btn.active {
+            background: #b84a27;
+            border-color: #ffeb3b;
+            color: #fff;
+        }
+        .mode-row.disabled .mode-btn {
+            opacity: 0.45;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .metric-card {
+            background: #171e27;
+            border: 1px solid #263342;
+            border-radius: 6px;
+            padding: 8px;
+            text-align: center;
+            min-width: 0;
+        }
+        .metric-card.primary {
+            border-color: #00e676;
+            background: #0d2118;
+        }
+        .metric-card.secondary {
+            border-color: #ffaa00;
+            background: #211a0d;
+        }
+        .metric-title {
+            font-size: 11px;
+            color: #9cb3c9;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: 900;
+            font-family: monospace;
+            color: #00e676;
+        }
+        .metric-value.blue { color: #66b2ff; }
+        .metric-value.white { color: #e2e8f0; }
+        .metric-card.secondary .metric-value {
+            color: #ffbc00;
+        }
+        .metric-sub {
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-top: 2px;
+            font-family: monospace;
+        }
+
+        .precision-keypad {
+            background: #181b20;
+            border: 1px solid #323741;
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+        .keypad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 12px;
+            color: #ffeb3b;
+            font-weight: bold;
+        }
+        .step-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .step-btn {
+            background: #262b33;
+            border: 1px solid #3d4552;
+            color: #e2e8f0;
+            border-radius: 5px;
+            padding: 8px 2px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .step-btn:active {
+            background: #b84a27;
+            color: #fff;
+        }
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+        }
+        .num-btn {
+            background: #1f232a;
+            border: 1px solid #323842;
+            color: #fff;
+            border-radius: 5px;
+            padding: 8px 0;
+            font-size: 15px;
+            font-weight: bold;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .num-btn:active {
+            background: #005bb5;
+        }
+        .num-btn.action-clr {
+            background: #4a1c1c;
+            border-color: #7c2d2d;
+            color: #fca5a5;
+        }
+
+        .hardware-controls {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #2e323b;
+        }
+        .hw-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .toggle-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .toggle-labels {
+            font-size: 10px;
+            color: #d1d5db;
+            font-weight: bold;
+            margin-bottom: 3px;
+            display: flex;
+            gap: 8px;
+        }
+        .test-icon-box {
+            border: 1.5px solid #d4a359;
+            color: #d4a359;
+            font-size: 9px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .hex-nut {
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle, #2e3238 40%, #15171a 100%);
+            border: 3px solid #3c4048;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.8);
+            position: relative;
+        }
+        .lever {
+            width: 14px;
+            height: 28px;
+            background: linear-gradient(90deg, #111, #444, #111);
+            border-radius: 7px;
+            border: 1px solid #000;
+            transition: transform 0.15s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.9);
+        }
+        .lever.pos-up { transform: translateY(-6px) rotate(-12deg); }
+        .lever.pos-mid { transform: translateY(0px); }
+        .lever.pos-down { transform: translateY(6px) rotate(12deg); }
+
+        .knob-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .knob-title {
+            font-size: 13px;
+            font-weight: 900;
+            color: #d8c39e;
+            margin-bottom: 2px;
+        }
+        .knob-sub {
+            font-size: 9px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+            text-align: center;
+            max-width: 100%;
+        }
+        .knob-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .knob-dial {
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, #e03c28 52%, #1c1e21 56%, #2f3338 68%, #121315 100%);
+            border: 2px solid #0d0e10;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.85), inset 0 2px 4px rgba(255,255,255,0.25);
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .knob-dial::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 10px;
+            background: #111;
+            border-radius: 2px;
+        }
+        .knob-btn {
+            background: #252930;
+            border: 1px solid #434956;
+            color: #fff;
+            width: 22px;
+            height: 34px;
+            flex-shrink: 0;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .knob-btn:active {
+            background: #e03c28;
+        }
+    </style>
+</head>
+<body>
+
+<div class="machine-chassis">
+    <div class="pinstripe-frame">
+        <div class="top-bar">
+            <div class="mount-bolt"></div>
+            <div class="title-area">
+                <div class="tig-label">TIG compatible</div>
+                <div class="rail-titan-logo">RAIL TITAN</div>
+            </div>
+            <div class="lang-switch">
+                <button class="lang-btn active" id="btnDE" onclick="setLang('de')">DE</button>
+                <button class="lang-btn" id="btnEN" onclick="setLang('en')">EN</button>
+            </div>
+        </div>
+
+        <div class="lcd-bezel">
+            <div class="lcd-screen">
+                <div class="lcd-main">
+                    <div class="lcd-header">
+                        <span class="lcd-status" id="lcdStatus">Ready.</span>
+                        <span class="lcd-unit">cm</span>
+                    </div>
+
+                    <div class="lcd-row">
+                        <div class="lcd-item" id="item_tL" onclick="selectParam('tL')">
+                            <span class="lcd-symbol">t(</span>
+                            <span class="lcd-val" id="disp_tL">0.0</span>
+                        </div>
+                        <div class="lcd-item" id="item_tC" onclick="selectParam('tC')">
+                            <span class="lcd-symbol">t≀</span>
+                            <span class="lcd-val" id="disp_tC">0.0</span>
+                        </div>
+                        <div class="lcd-item" id="item_tR" onclick="selectParam('tR')">
+                            <span class="lcd-symbol">t)</span>
+                            <span class="lcd-val" id="disp_tR">0.0</span>
+                        </div>
+                    </div>
+
+                    <div class="lcd-row">
+                        <div class="lcd-item" id="item_W" onclick="selectParam('W')">
+                            <span class="lcd-symbol">A↕</span>
+                            <span class="lcd-val" id="disp_W">0.8</span>
+                        </div>
+                        <div class="lcd-item" id="item_vOsc" onclick="selectParam('vOsc')">
+                            <span class="lcd-symbol">v↕</span>
+                            <span class="lcd-val" id="disp_vOsc">110</span>
+                        </div>
+                        <div class="lcd-item selected" id="item_vSet" onclick="selectParam('vSet')">
+                            <span class="lcd-symbol">v→</span>
+                            <span class="lcd-val" id="disp_vSet">17</span>
+                        </div>
+                    </div>
+
+                    <div class="lcd-row-bottom">
+                        <div class="lcd-item" id="item_offY" onclick="selectParam('offY')">
+                            <span class="lcd-symbol">◁</span>
+                            <span class="lcd-val" id="disp_offY">-0.06</span>
+                        </div>
+                        <div class="lcd-item" id="item_offZ" onclick="selectParam('offZ')">
+                            <span class="lcd-symbol">↕▼</span>
+                            <span class="lcd-val" id="disp_offZ">1.06</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lcd-sidebar">
+                    <div class="sidebar-box">V</div>
+                    <div class="sidebar-box">⊕</div>
+                    <div class="sidebar-box"></div>
+                    <div class="sidebar-box"></div>
+                    <div class="sidebar-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="promotech-bar">
+            <div class="stripe-lines"></div>
+            <div class="promotech-plate">PROMOTECH</div>
+            <div class="stripe-lines"></div>
+        </div>
+
+        <div class="meter-dashboard">
+            <div class="dist-selector">
+                <span class="dist-label" id="lblDistance">Schweißstrecke (Meter):</span>
+                <div class="dist-controls">
+                    <button class="mini-step-btn" onclick="stepDistance(-0.5)">-</button>
+                    <button class="dist-val-btn" id="item_distM" onclick="selectParam('distM')">
+                        <span id="disp_distM">1.00</span> m
+                    </button>
+                    <button class="mini-step-btn" onclick="stepDistance(0.5)">+</button>
+                </div>
+            </div>
+
+            <div class="mode-row" id="modeRow">
+                <div class="mode-label" id="lblPath">Schweißbahn:</div>
+                <button class="mode-btn" id="mode_trapezoid" onclick="setMode('trapezoid')">Trapez</button>
+                <button class="mode-btn" id="mode_triangle" onclick="setMode('triangle')">Dreieck</button>
+                <button class="mode-btn" id="mode_square" onclick="setMode('square')">Rechteck</button>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <div class="metric-title" id="lblTime1M">Dauer für 1,00 Meter</div>
+                    <div class="metric-value" id="outTime1M">05:53</div>
+                    <div class="metric-sub" id="outTime1MSub">5 Min 53 Sek (5,88 Min)</div>
+                </div>
+                <div class="metric-card secondary">
+                    <div class="metric-title" id="lblEffectiveSpeed">Effektive Geschw. (m)</div>
+                    <div class="metric-value" id="outSpeedM">0,170 m/min</div>
+                    <div class="metric-sub" id="outSpeedSub">17,00 cm/min | 10,20 m/h</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title" id="lblTotalDistTime">Gesamtdauer (Strecke)</div>
+                    <div class="metric-value blue" id="outTotalTime">05:53</div>
+                    <div class="metric-sub" id="outCycleInfo">Zyklus: 0,87 s (Bewegung: 100%)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title" id="lblPitch">Vorschub pro Pendelung</div>
+                    <div class="metric-value white" id="outPitch">2,47 mm</div>
+                    <div class="metric-sub" id="outOscState">Pendelung: AKTIV (I)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="precision-keypad">
+            <div class="keypad-header">
+                <span id="lblSelectedParam">Auswahl: Fahrgeschwindigkeit v→ [cm/min]</span>
+                <span id="lblUnitHint"></span>
+            </div>
+            <div class="step-row">
+                <button class="step-btn" onclick="adjustSelected(-10)">-10</button>
+                <button class="step-btn" onclick="adjustSelected(-1)">-1</button>
+                <button class="step-btn" onclick="adjustSelected(-0.1)">-0.1</button>
+                <button class="step-btn" onclick="adjustSelected(0.1)">+0.1</button>
+                <button class="step-btn" onclick="adjustSelected(1)">+1</button>
+                <button class="step-btn" onclick="adjustSelected(10)">+10</button>
+            </div>
+            <div class="numpad-grid">
+                <button class="num-btn" onclick="pressDigit('1')">1</button>
+                <button class="num-btn" onclick="pressDigit('2')">2</button>
+                <button class="num-btn" onclick="pressDigit('3')">3</button>
+                <button class="num-btn" onclick="pressDigit('4')">4</button>
+                <button class="num-btn" onclick="pressDigit('5')">5</button>
+                <button class="num-btn action-clr" onclick="pressClear()">CLR</button>
+                <button class="num-btn" onclick="pressDigit('6')">6</button>
+                <button class="num-btn" onclick="pressDigit('7')">7</button>
+                <button class="num-btn" onclick="pressDigit('8')">8</button>
+                <button class="num-btn" onclick="pressDigit('9')">9</button>
+                <button class="num-btn" onclick="pressDigit('0')">0</button>
+                <button class="num-btn" onclick="pressDigit('.')">.</button>
+            </div>
+            <div class="step-row" style="margin:4px 0 0 0; grid-template-columns: 1fr;">
+                <button class="step-btn" onclick="toggleSign()">+ / −</button>
+            </div>
+        </div>
+
+        <div class="hardware-controls">
+            <div class="hw-col">
+                <div class="toggle-unit" onclick="cycleSwitch('left')">
+                    <div class="toggle-labels"><span>▲</span><span>O</span><span>▼</span></div>
+                    <div class="hex-nut">
+                        <div class="lever pos-mid" id="leverLeft"></div>
+                    </div>
+                </div>
+
+                <div class="knob-unit">
+                    <div class="knob-title">F1</div>
+                    <div class="knob-sub" id="lblF1">Pendelbreite (A↕)</div>
+                    <div class="knob-wrapper">
+                        <button class="knob-btn" onclick="turnKnob('F1', -1)">-</button>
+                        <div class="knob-dial" id="dialF1" onclick="selectParam('W')"></div>
+                        <button class="knob-btn" onclick="turnKnob('F1', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hw-col">
+                <div class="knob-unit">
+                    <div class="knob-title">F2</div>
+                    <div class="knob-sub" id="lblF2">Pendelgeschw. (v↕)</div>
+                    <div class="knob-wrapper">
+                        <button class="knob-btn" onclick="turnKnob('F2', -1)">-</button>
+                        <div class="knob-dial" id="dialF2" onclick="selectParam('vOsc')"></div>
+                        <button class="knob-btn" onclick="turnKnob('F2', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="toggle-unit" onclick="cycleSwitch('center')">
+                    <div class="test-icon-box">TEST  torch</div>
+                    <div class="toggle-labels"><span>O</span><span>I</span></div>
+                    <div class="hex-nut">
+                        <div class="lever pos-down" id="leverCenter"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hw-col">
+                <div class="toggle-unit" onclick="toggleOscillationMode()">
+                    <div class="test-icon-box">TEST ∿</div>
+                    <div class="toggle-labels"><span>O</span><span>I</span></div>
+                    <div class="hex-nut">
+                        <div class="lever pos-down" id="leverRight"></div>
+                    </div>
+                </div>
+
+                <div class="knob-unit">
+                    <div class="knob-title">F3</div>
+                    <div class="knob-sub" id="lblF3">Fahrgeschw. (v→)</div>
+                    <div class="knob-wrapper">
+                        <button class="knob-btn" onclick="turnKnob('F3', -1)">-</button>
+                        <div class="knob-dial" id="dialF3" onclick="selectParam('vSet')"></div>
+                        <button class="knob-btn" onclick="turnKnob('F3', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const DEFAULTS = {
+    tL: 0.0, tC: 0.0, tR: 0.0,
+    W: 0.8, vOsc: 110, vSet: 17,
+    offY: -0.06, offZ: 1.06, distM: 1.00
+};
+
+const state = {
+    lang: 'de',
+    selected: 'vSet',
+    inputBuffer: '',
+    oscEnabled: true,
+    pathMode: 'trapezoid',
+    ...DEFAULTS,
+    rotF1: 0,
+    rotF2: 0,
+    rotF3: 0
+};
+
+const PARAM_KEYS = ['tL', 'tC', 'tR', 'W', 'vOsc', 'vSet', 'offY', 'offZ', 'distM'];
+
+const i18n = {
+    de: {
+        ready: "Bereit.",
+        selection: "Auswahl",
+        pathLabel: "Schweißbahn:",
+        modes: { trapezoid: "Trapez", triangle: "Dreieck", square: "Rechteck" },
+        input: "Eingabe",
+        distance: "Schweißstrecke (Meter):",
+        time1M: "Dauer für 1,00 Meter",
+        effSpeed: "Effektive Geschw. (m)",
+        totalTime: "Gesamtdauer (Strecke)",
+        pitch: "Vorschub pro Pendelung",
+        oscOn: "Pendelung: AKTIV (I)",
+        oscOff: "Pendelung: AUS (O - Gerade)",
+        cyclePrefix: "Zyklus",
+        movePrefix: "Bewegung",
+        noCycle: "Kein Pendelzyklus",
+        minShort: "Min",
+        secShort: "Sek",
+        stopped: "STOPP",
+        f1Sub: "Pendelbreite (A↕)",
+        f2Sub: "Pendelgeschw. (v↕)",
+        f3Sub: "Fahrgeschw. (v→)",
+        paramNames: {
+            tL: "Haltezeit Links t(",
+            tC: "Haltezeit Mitte t≀",
+            tR: "Haltezeit Rechts t)",
+            W: "Pendelbreite A↕",
+            vOsc: "Pendelgeschwindigkeit v↕",
+            vSet: "Fahrgeschwindigkeit v→",
+            offY: "Nullpunkt-Verschiebung Y",
+            offZ: "Brennerhöhe Z",
+            distM: "Schweißstrecke"
+        }
+    },
+    en: {
+        ready: "Ready.",
+        selection: "Selected",
+        pathLabel: "Weld path:",
+        modes: { trapezoid: "Trapezoid", triangle: "Triangle", square: "Square" },
+        input: "Input",
+        distance: "Weld Length (Meters):",
+        time1M: "Time for 1.00 Meter",
+        effSpeed: "Effective Speed (m)",
+        totalTime: "Total Time (Length)",
+        pitch: "Pitch per Oscillation",
+        oscOn: "Oscillation: ON (I)",
+        oscOff: "Oscillation: OFF (O - Linear)",
+        cyclePrefix: "Cycle",
+        movePrefix: "Move",
+        noCycle: "No oscillation cycle",
+        minShort: "min",
+        secShort: "sec",
+        stopped: "STOPPED",
+        f1Sub: "Osc. Width (A↕)",
+        f2Sub: "Osc. Speed (v↕)",
+        f3Sub: "Travel Speed (v→)",
+        paramNames: {
+            tL: "Left Dwell Time t(",
+            tC: "Center Dwell Time t≀",
+            tR: "Right Dwell Time t)",
+            W: "Oscillation Width A↕",
+            vOsc: "Oscillation Speed v↕",
+            vSet: "Tractor Travel Speed v→",
+            offY: "Center Offset Y",
+            offZ: "Torch Height Z",
+            distM: "Weld Distance"
+        }
+    }
+};
+
+const UNITS = {
+    tL: 's', tC: 's', tR: 's',
+    W: 'cm', vOsc: 'cm/min', vSet: 'cm/min',
+    offY: 'cm', offZ: 'cm', distM: 'm'
+};
+
+// Zahlenformat je nach Sprache (Komma im Deutschen, Punkt im Englischen)
+function fmt(num, digits) {
+    const s = num.toFixed(digits);
+    return state.lang === 'de' ? s.replace('.', ',') : s;
+}
+
+function setLang(lang) {
+    state.lang = lang;
+    document.documentElement.lang = lang;
+    document.getElementById('btnDE').classList.toggle('active', lang === 'de');
+    document.getElementById('btnEN').classList.toggle('active', lang === 'en');
+    updateUI();
+}
+
+function selectParam(key) {
+    state.selected = key;
+    state.inputBuffer = '';
+    PARAM_KEYS.forEach(k => {
+        const el = document.getElementById('item_' + k);
+        if (el) el.classList.toggle('selected', k === key);
+    });
+    updateUI();
+}
+
+function clampParam(key, val) {
+    if (isNaN(val)) return state[key];
+    switch (key) {
+        case 'tL':
+        case 'tC':
+        case 'tR':
+            return Math.max(0, Math.min(5.0, Math.round(val * 10) / 10));
+        case 'W':
+            return Math.max(0.1, Math.min(11.8, Math.round(val * 10) / 10));
+        case 'vOsc':
+            return Math.max(10, Math.min(200, Math.round(val)));
+        case 'vSet':
+            return Math.max(0, Math.min(250, Math.round(val * 10) / 10));
+        case 'offY':
+            return Math.max(-5.0, Math.min(5.0, Math.round(val * 100) / 100));
+        case 'offZ':
+            return Math.max(0, Math.min(10.0, Math.round(val * 100) / 100));
+        case 'distM':
+            return Math.max(0.05, Math.min(100.0, Math.round(val * 100) / 100));
+        default:
+            return val;
+    }
+}
+
+function adjustSelected(delta) {
+    state.inputBuffer = '';
+    const key = state.selected;
+    // Ganzzahlige Parameter: Schritte kleiner als 1 sind wirkungslos, daher auf 1 aufrunden
+    let d = delta;
+    if (key === 'vOsc' && Math.abs(d) < 1) d = Math.sign(d);
+    state[key] = clampParam(key, state[key] + d);
+    updateUI();
+}
+
+function stepDistance(delta) {
+    state.distM = clampParam('distM', state.distM + delta);
+    updateUI();
+}
+
+function pressDigit(char) {
+    const key = state.selected;
+    if (char === '.' && state.inputBuffer.includes('.')) return;
+    if (state.inputBuffer.replace('-', '').length >= 6) return;
+    state.inputBuffer += char;
+    const parsed = parseFloat(state.inputBuffer);
+    if (!isNaN(parsed)) {
+        state[key] = clampParam(key, parsed);
+    }
+    updateUI();
+}
+
+function toggleSign() {
+    const key = state.selected;
+    // Negative Werte sind nur bei der Nullpunkt-Verschiebung Y erlaubt
+    if (key !== 'offY') return;
+    if (state.inputBuffer) {
+        state.inputBuffer = state.inputBuffer.startsWith('-')
+            ? state.inputBuffer.slice(1)
+            : '-' + state.inputBuffer;
+        const parsed = parseFloat(state.inputBuffer);
+        if (!isNaN(parsed)) state[key] = clampParam(key, parsed);
+    } else {
+        state[key] = clampParam(key, -state[key]);
+    }
+    updateUI();
+}
+
+function pressClear() {
+    state.inputBuffer = '';
+    const key = state.selected;
+    const zeroKeys = ['tL', 'tC', 'tR', 'vSet', 'offY', 'offZ'];
+    if (zeroKeys.includes(key)) state[key] = clampParam(key, 0);
+    else state[key] = DEFAULTS[key]; // vOsc und distM: Standardwert
+    updateUI();
+}
+
+function rotateDial(id, key, dir) {
+    state[key] += dir * 20;
+    document.getElementById(id).style.transform = `rotate(${state[key]}deg)`;
+}
+
+function turnKnob(knob, dir) {
+    if (knob === 'F1') {
+        selectParam('W');
+        state.W = clampParam('W', state.W + dir * 0.1);
+        rotateDial('dialF1', 'rotF1', dir);
+    } else if (knob === 'F2') {
+        selectParam('vOsc');
+        state.vOsc = clampParam('vOsc', state.vOsc + dir * 5);
+        rotateDial('dialF2', 'rotF2', dir);
+    } else if (knob === 'F3') {
+        selectParam('vSet');
+        state.vSet = clampParam('vSet', state.vSet + dir * 1);
+        rotateDial('dialF3', 'rotF3', dir);
+    }
+    updateUI();
+}
+
+function setMode(mode) {
+    state.pathMode = mode;
+    updateUI();
+}
+
+function toggleOscillationMode() {
+    state.oscEnabled = !state.oscEnabled;
+    document.getElementById('leverRight').className = state.oscEnabled ? 'lever pos-down' : 'lever pos-mid';
+    updateUI();
+}
+
+function cycleSwitch(which) {
+    const el = document.getElementById(which === 'left' ? 'leverLeft' : 'leverCenter');
+    if (el.classList.contains('pos-down')) el.className = 'lever pos-mid';
+    else if (el.classList.contains('pos-mid')) el.className = 'lever pos-up';
+    else el.className = 'lever pos-down';
+}
+
+// Formatiert Minuten als MM:SS, ab 60 Minuten als H:MM:SS
+function formatMMSS(totalMinutes) {
+    const totalSeconds = Math.round(totalMinutes * 60);
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    const pad = n => String(n).padStart(2, '0');
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+function updateUI() {
+    const t = i18n[state.lang];
+    const sel = state.selected;
+
+    // Texte
+    document.getElementById('lcdStatus').innerText = t.ready;
+    document.getElementById('lblDistance').innerText = t.distance;
+    document.getElementById('lblTime1M').innerText = t.time1M;
+    document.getElementById('lblEffectiveSpeed').innerText = t.effSpeed;
+    document.getElementById('lblTotalDistTime').innerText = t.totalTime;
+    document.getElementById('lblPitch').innerText = t.pitch;
+    document.getElementById('lblPath').innerText = t.pathLabel;
+    ['trapezoid', 'triangle', 'square'].forEach(m => {
+        const b = document.getElementById('mode_' + m);
+        b.innerText = t.modes[m];
+        b.classList.toggle('active', state.pathMode === m);
+    });
+    document.getElementById('modeRow').classList.toggle('disabled', !state.oscEnabled);
+    document.getElementById('lblF1').innerText = t.f1Sub;
+    document.getElementById('lblF2').innerText = t.f2Sub;
+    document.getElementById('lblF3').innerText = t.f3Sub;
+    document.getElementById('lblSelectedParam').innerText =
+        `${t.selection}: ${t.paramNames[sel]} [${UNITS[sel]}]`;
+    document.getElementById('lblUnitHint').innerText =
+        state.inputBuffer ? `${t.input}: ${state.inputBuffer}` : '';
+
+    // LCD-Anzeige
+    document.getElementById('disp_tL').innerText = state.tL.toFixed(1);
+    document.getElementById('disp_tC').innerText = state.tC.toFixed(1);
+    document.getElementById('disp_tR').innerText = state.tR.toFixed(1);
+    document.getElementById('disp_W').innerText = state.W.toFixed(1);
+    document.getElementById('disp_vOsc').innerText = Math.round(state.vOsc);
+    document.getElementById('disp_vSet').innerText =
+        Number.isInteger(state.vSet) ? state.vSet : state.vSet.toFixed(1);
+    document.getElementById('disp_offY').innerText = state.offY.toFixed(2);
+    document.getElementById('disp_offZ').innerText = state.offZ.toFixed(2);
+    document.getElementById('disp_distM').innerText = state.distM.toFixed(2);
+
+    // Berechnung
+    const oscActive = state.oscEnabled && state.W > 0 && state.vOsc > 0;
+    let tCycle = 0;
+    let moveRatio = 1.0;
+    let vEffCmMin = state.vSet;
+    let pitchMm = 0;
+
+    if (oscActive) {
+        const tSweep = (2 * state.W / state.vOsc) * 60;   // Bewegungszeit pro Zyklus [s]
+        const tDwell = state.tL + state.tC + state.tR;    // Haltezeiten pro Zyklus [s]
+        tCycle = tSweep + tDwell;
+        moveRatio = tCycle > 0 ? tSweep / tCycle : 0;
+        // Laut Promotech-Handbuch (Rail Titan 2):
+        // Trapez:   Fahrwagen läuft immer, auch während der Haltezeiten
+        // Dreieck:  Fahrwagen läuft nur während der Pendelbewegung
+        // Rechteck: Fahrwagen läuft nur während der Haltezeiten
+        let tractorRatio;
+        if (state.pathMode === 'trapezoid') tractorRatio = 1;
+        else if (state.pathMode === 'triangle') tractorRatio = moveRatio;
+        else tractorRatio = tCycle > 0 ? tDwell / tCycle : 0;
+        vEffCmMin = state.vSet * tractorRatio;
+        pitchMm = vEffCmMin * 10 * (tCycle / 60);         // Vorschub pro Zyklus [mm]
+    }
+
+    const vEffMMin = vEffCmMin / 100;
+    const vEffMH = vEffMMin * 60;
+
+    document.getElementById('outSpeedM').innerText = `${fmt(vEffMMin, 3)} m/min`;
+    document.getElementById('outSpeedSub').innerText = `${fmt(vEffCmMin, 2)} cm/min | ${fmt(vEffMH, 2)} m/h`;
+    document.getElementById('outOscState').innerText = oscActive ? t.oscOn : t.oscOff;
+    document.getElementById('outPitch').innerText = oscActive ? `${fmt(pitchMm, 2)} mm` : `${fmt(0, 2)} mm`;
+
+    if (vEffMMin > 0) {
+        const minutesPer1M = 1.0 / vEffMMin;
+        const totalSecs1M = Math.round(minutesPer1M * 60);
+        const m1 = Math.floor(totalSecs1M / 60);
+        const s1 = totalSecs1M % 60;
+
+        document.getElementById('outTime1M').innerText = formatMMSS(minutesPer1M);
+        document.getElementById('outTime1MSub').innerText =
+            `${m1} ${t.minShort} ${s1} ${t.secShort} (${fmt(minutesPer1M, 2)} ${t.minShort})`;
+        document.getElementById('outTotalTime').innerText = formatMMSS(state.distM / vEffMMin);
+    } else {
+        document.getElementById('outTime1M').innerText = t.stopped;
+        document.getElementById('outTime1MSub').innerText = "--";
+        document.getElementById('outTotalTime').innerText = t.stopped;
+    }
+
+    document.getElementById('outCycleInfo').innerText = oscActive
+        ? `${t.cyclePrefix}: ${fmt(tCycle, 2)} s (${t.movePrefix}: ${Math.round(moveRatio * 100)}%)`
+        : t.noCycle;
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
